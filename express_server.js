@@ -11,15 +11,17 @@ const urlDatabase = {
 };
 
 
+// generates a ranom alpha-numberic string as the id.
 function generateRandomString() {
   return Math.random().toString(36).substring(2,8);
 }
 
 
-
-//this has to come before all routes. 
+// Body Parser - this has to come before all routes. 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
+
+
 
 
 // routes
@@ -40,12 +42,9 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-
-
 app.get("/urls/new", (req, res) => { 
   res.render("urls_new");
 });
-
 
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { 
@@ -56,12 +55,21 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
+  // console.log(req.body);  // Log the POST request body to the console
+  let id = generateRandomString();
+  urlDatabase[id] = req.body.longURL;
+
   res.send("Ok");         // Respond with 'Ok' (we will replace this)
+
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL]
+  res.redirect(longURL);
 });
 
 
-
+// server connect.
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
