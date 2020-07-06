@@ -4,6 +4,7 @@ const PORT = 8080; // default port
 
 app.set("view engine", "ejs");
 
+// this represents the data we're working from.
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -22,6 +23,10 @@ app.get("/hello", (req, res) => {
 });
 
 
+app.get("/urls", (req, res) => {
+  let templateVars = { urls: urlDatabase } //ejs: can only send variables as objects
+  res.render("urls_index", templateVars);
+});
 
 
 app.listen(PORT, () => {
