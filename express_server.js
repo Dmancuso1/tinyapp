@@ -49,14 +49,6 @@ app.get("/urls/new", (req, res) => {
 
 
 
-app.post("/urls", (req, res) => {
-  // console.log(req.body);  // Log the POST request body to the console
-  let id = generateRandomString();
-  urlDatabase[id] = req.body.longURL;
-  // res.send("Ok");         // TODO: redirect to short URL
-  shortURL = `/urls/${id}`;
-  res.redirect(shortURL);
-});
 
 // gets the page with newly created id number
 app.get("/urls/:shortURL", (req, res) => {
@@ -67,9 +59,21 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.post("/urls", (req, res) => {
+  // console.log(req.body);  // Log the POST request body to the console
+  let id = generateRandomString();
+  urlDatabase[id] = req.body.longURL;
+  res.redirect(`/urls/${id}`);
+});
+
+//Add a POST request to update a resource. 
+app.post("/urls/:shortURL", (req, res) => {
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+  res.redirect(`/urls/${req.params.shortURL}`);
+});
+
 //Add a POST route that removes a URL resource: POST /urls/:shortURL/delete, then redirs to /urls
 app.post("/urls/:shortURL/delete", (req, res) => {
-  shortURL = req.params.shortURL;
   delete urlDatabase[req.params.shortURL]
   res.redirect("/urls");
 });
@@ -78,7 +82,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
-  
 });
 
 
