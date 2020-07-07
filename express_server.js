@@ -59,7 +59,9 @@ app.post("/urls", (req, res) => {
   let id = generateRandomString();
   urlDatabase[id] = req.body.longURL;
 
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  // res.send("Ok");         // TODO: redirect to short URL
+  shortURL = `/urls/${id}`;
+  res.redirect(shortURL);
 
 });
 
