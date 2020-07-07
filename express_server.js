@@ -42,10 +42,23 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// gets the form to add a new url
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+
+
+app.post("/urls", (req, res) => {
+  // console.log(req.body);  // Log the POST request body to the console
+  let id = generateRandomString();
+  urlDatabase[id] = req.body.longURL;
+  // res.send("Ok");         // TODO: redirect to short URL
+  shortURL = `/urls/${id}`;
+  res.redirect(shortURL);
+});
+
+// gets the page with newly created id number
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
@@ -54,21 +67,12 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.post("/urls", (req, res) => {
-  // console.log(req.body);  // Log the POST request body to the console
-  let id = generateRandomString();
-  urlDatabase[id] = req.body.longURL;
-
-  // res.send("Ok");         // TODO: redirect to short URL
-  shortURL = `/urls/${id}`;
-  res.redirect(shortURL);
-
-});
 
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
+
 
 
 // server connect.
