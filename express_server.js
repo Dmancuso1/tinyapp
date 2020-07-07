@@ -4,27 +4,38 @@ const PORT = 8080; // default port
 
 app.set("view engine", "ejs");
 
-// this represents the data we're working from.
+// Parsers - this has to come before all routes.
+const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser')
+
+app.use(cookieParser())
+app.use(bodyParser.urlencoded({extended: true}));
+
+
+
+// default start data.
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
 
-// generates a ranom alpha-numberic string as the id.
+// generates a 6-char random alpha-numberic string as the id.
 function generateRandomString() {
   return Math.random().toString(36).substring(2,8);
 }
 
 
-// Body Parser - this has to come before all routes.
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
 
+// routes >>>------------------------>
 
+// set cookie to username
+app.post("/login", (req, res) => {
+  const userName = req.body;
+  res.cookie('username', userName.username)
+  res.redirect("/urls/")
+});
 
-
-// routes
 app.get('/', (req, res) => {
   res.send("Hello!");
 });
@@ -38,23 +49,21 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase }; //ejs: can only send variables as objects
+  let templateVars = { urls: urlDatabase, username: req.cookies["username"] }; //ejs: can only send variables as objects
   res.render("urls_index", templateVars);
 });
 
 // gets the form to add a new url
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  res.render("urls_new", { username: req.cookies["username"]} );
 });
-
-
-
 
 // gets the page with newly created id number
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL] // <- note square notation for key we dont yet know.
+    longURL: urlDatabase[req.params.shortURL], // <- note square notation for key we dont yet know.
+    username: req.cookies["username"]
   };
   res.render("urls_show", templateVars);
 });
@@ -83,7 +92,6 @@ app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
-
 
 
 // server connect.
