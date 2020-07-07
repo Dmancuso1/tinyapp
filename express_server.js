@@ -31,8 +31,13 @@ function generateRandomString() {
 
 // set cookie to username
 app.post("/login", (req, res) => {
-  const userName = req.body;
-  res.cookie('username', userName.username)
+  res.cookie('username', req.body.username)
+  res.redirect("/urls/")
+});
+
+//remove cookie from username
+app.post("/logout",(req, res) => {
+  res.clearCookie('username', req.body.username)
   res.redirect("/urls/")
 });
 
