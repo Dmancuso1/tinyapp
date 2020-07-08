@@ -1,5 +1,5 @@
 <header>
-  <nav class="navbar navbar-expand-md navbar-dark bg-success">
+  <nav class="navbar navbar-expand-md navbar-dark bg-success" style="width:100%">
     <a class="navbar-brand" href="/urls">TinyApp</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -8,11 +8,11 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <!-- if local (template) variable 'username' is set/defined, check if username is present. else show login form -->
-          <% if (username) { %>
+        <!-- if local (template) object 'user' is set/defined, check if username is present. else show login form -->
+          <% if (user) { %>
             <form class="form-inline" action="/logout" method="POST">
               <div class="form-group mb-2"> 
-                <span style="color: #505050"><%= username %></span> 
+                <span style="color: #505050"><%= user.email %></span> 
                 <button type="submit" class="btn btn-primary">Logout</button>
               </div>
             </form>

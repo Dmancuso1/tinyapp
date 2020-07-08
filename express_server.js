@@ -13,14 +13,33 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 
 
-// default start data.
+
+// DATABASE >>>------------------------>
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
 
-// generates a 6-char random alpha-numberic string as the id.
+
+
+
+// Helper functions >>>------------------------>
+
+// generates 6-char random alpha-num string as id.
 function generateRandomString() {
   return Math.random().toString(36).substring(2,8);
 }
@@ -29,38 +48,60 @@ function generateRandomString() {
 
 // routes >>>------------------------>
 
-// set cookie to username
-app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username)
-  res.redirect("/urls/")
-});
-
-//remove cookie from username
-app.post("/logout",(req, res) => {
-  res.clearCookie('username', req.body.username)
-  res.redirect("/urls/")
-});
 
 app.get('/', (req, res) => {
   res.send("Hello!");
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+
+app.get('/q=users', (req, res) => {
+  res.json(users);
+
 });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body</html");
+// set cookie to username
+app.post("/login", (req, res) => {
+  // res.cookie('username', req.body.username)
+  res.redirect("/urls/")
 });
+
+//remove cookie from username
+app.post("/logout",(req, res) => {
+  // res.clearCookie('username', req.body.username)
+  res.clearCookie('user_id', req.body.id )
+  res.redirect("/urls/")
+});
+
+app.get('/register', (req,res) => {
+  let templateVars = { user: users[req.cookies["user_id"]] }
+  res.render("register_user", templateVars)
+});
+
+app.post('/register', (req, res) => {
+  // add new user obj to global users obj (s/ include id(use helper), email, password)
+  const id = generateRandomString()
+  const email = req.body.email;
+  const password = req.body.password;
+  const newUser = {
+    id,
+    email,
+    password
+  }
+  users[id] = newUser;
+  // set user_id cookie containing newly generated ID.
+  res.cookie('user_id', id);
+  res.redirect("/urls/")
+});
+
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase, username: req.cookies["username"] }; //ejs: can only send variables as objects
+  let templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] }; //ejs: can only send variables as objects
   res.render("urls_index", templateVars);
 });
 
 // gets the form to add a new url
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new", { username: req.cookies["username"]} );
+  res.render("urls_new", { user: users[req.cookies["user_id"]]} );
 });
 
 // gets the page with newly created id number
@@ -68,7 +109,7 @@ app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL], // <- note square notation for key we dont yet know.
-    username: req.cookies["username"]
+    user: users[req.cookies["user_id"]]
   };
   res.render("urls_show", templateVars);
 });
