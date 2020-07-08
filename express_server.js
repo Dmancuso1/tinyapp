@@ -82,10 +82,6 @@ app.get('/q=users', (req, res) => {
 
 // sets an appropriate user_id cookie on successful login
 app.post("/login", (req, res) => {
-
-  // make helper function to loop correspiding id of req/body.email...
-  const id = req.body.id;
-  console.log('req body ', req.body)
   const email = req.body.email;
   const password = req.body.password;
   if (!checkEmailDupe(email)) {
