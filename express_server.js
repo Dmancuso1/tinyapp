@@ -68,8 +68,8 @@ function checkPassword(passwordInput) {
 
 
 
-// routes >>>------------------------>
 
+// routes >>>------------------------>
 
 app.get('/', (req, res) => {
   res.send("Hello!");
@@ -94,9 +94,6 @@ app.post("/login", (req, res) => {
     res.redirect("/urls/")
   }
 });
-
-// { password: users[user].password, email: users[user].email, id: users[user].id }
-
 
   // fetch login_user
 app.get("/login", (req, res) => {
@@ -125,10 +122,9 @@ app.post('/register', (req, res) => {
   // 404 res if input fields empty
   if (email === "" || password === "") {
     res.status(400).send('Error: empty user input fields')
-  }
-  if (checkEmailDupe(email)) {
+  } else if (checkEmailDupe(email)) {
     res.status(400).send('Error: Email already exists')
-  }
+  } else {
   const newUser = {
     id,
     email,
@@ -136,9 +132,9 @@ app.post('/register', (req, res) => {
   }
   users[id] = newUser;
 
-
   res.cookie('user_id', id);
   res.redirect("/urls/")
+ }
 });
 
 app.get("/urls", (req, res) => {
@@ -148,7 +144,11 @@ app.get("/urls", (req, res) => {
 
 // gets the form to add a new url
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new", { user: users[req.cookies["user_id"]] });
+  if (users[req.cookies["user_id"]]) {
+    res.render("urls_new", { user: users[req.cookies["user_id"]] });
+  } else {
+    res.redirect("/urls");
+  }
 });
 
 // gets the page with newly created id number
