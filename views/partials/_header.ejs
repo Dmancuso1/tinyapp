@@ -11,7 +11,7 @@
         <!-- if local (template) variable 'username' is set/defined, check if username is present. else show login form -->
           <% if (username) { %>
             <form class="form-inline" action="/logout" method="POST">
-              <div class="form-group mb-2">
+              <div class="form-group mb-2"> 
                 <span style="color: #505050"><%= username %></span> 
                 <button type="submit" class="btn btn-primary">Logout</button>
               </div>
@@ -25,8 +25,6 @@
             </form>
           <% } %>
        <!--  -->
-
-
       </div>
     </div>
   </nav>
