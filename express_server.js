@@ -44,7 +44,15 @@ function generateRandomString() {
   return Math.random().toString(36).substring(2,8);
 }
 
-
+//email lookup function
+function checkEmailDupe(email) {
+  for (user in users) {
+    if (email === users[user].email) {
+      return true;
+    }
+  }
+  return false;
+};
 
 // routes >>>------------------------>
 
@@ -52,7 +60,6 @@ function generateRandomString() {
 app.get('/', (req, res) => {
   res.send("Hello!");
 });
-
 
 app.get('/q=users', (req, res) => {
   res.json(users);
@@ -77,22 +84,28 @@ app.get('/register', (req,res) => {
   res.render("register_user", templateVars)
 });
 
+// add new user object to users and set cookie user_id.
 app.post('/register', (req, res) => {
-  // add new user obj to global users obj (s/ include id(use helper), email, password)
   const id = generateRandomString()
   const email = req.body.email;
   const password = req.body.password;
+  // 404 res if input fields empty
+  if (email === "" || password === "") {
+    res.status(400).send('Error: empty user input fields')
+  }
+  if (checkEmailDupe(email)) {
+    res.status(400).send('Error: Email already exists')
+  }
   const newUser = {
     id,
     email,
     password
   }
   users[id] = newUser;
-  // set user_id cookie containing newly generated ID.
+
   res.cookie('user_id', id);
   res.redirect("/urls/")
 });
-
 
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] }; //ejs: can only send variables as objects
@@ -108,14 +121,13 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL], // <- note square notation for key we dont yet know.
+    longURL: urlDatabase[req.params.shortURL], 
     user: users[req.cookies["user_id"]]
   };
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
-  // console.log(req.body);  // Log the POST request body to the console
   let id = generateRandomString();
   urlDatabase[id] = req.body.longURL;
   res.redirect(`/urls/${id}`);
@@ -133,12 +145,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
-
 
 // server connect.
 app.listen(PORT, () => {
