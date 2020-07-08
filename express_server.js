@@ -21,6 +21,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+
 const users = { 
   "userRandomID": {
     id: "userRandomID", 
@@ -45,14 +46,27 @@ function generateRandomString() {
 }
 
 //email lookup function
-function checkEmailDupe(email) {
+function checkEmailDupe(emailInput) {
   for (user in users) {
-    if (email === users[user].email) {
+    if (emailInput === users[user].email) {
       return true;
     }
   }
   return false;
 };
+
+// check password
+function checkPassword(passwordInput) {
+  for (user in users) {
+    if (passwordInput === users[user].password) {
+      // return true;
+      return { password: users[user].password, email: users[user].email, id: users[user].id }
+    }
+  }
+  return false;
+};
+
+
 
 // routes >>>------------------------>
 
@@ -66,11 +80,34 @@ app.get('/q=users', (req, res) => {
 
 });
 
-// set cookie to username
+// sets an appropriate user_id cookie on successful login
 app.post("/login", (req, res) => {
-  // res.cookie('username', req.body.username)
-  res.redirect("/urls/")
+
+  // make helper function to loop correspiding id of req/body.email...
+  const id = req.body.id;
+  console.log('req body ', req.body)
+  const email = req.body.email;
+  const password = req.body.password;
+  if (!checkEmailDupe(email)) {
+    res.status(400).send('Error: No user found');
+  } else if (!checkPassword(password)) {
+    res.status(403).send('Error: invalid password');
+  } else {
+    const newUserData = checkPassword(password)
+    res.cookie('user_id', newUserData.id )
+    res.redirect("/urls/")
+  }
 });
+
+// { password: users[user].password, email: users[user].email, id: users[user].id }
+
+
+  // fetch login_user
+app.get("/login", (req, res) => {
+  let templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+  res.render("login_user", templateVars);
+});
+
 
 //remove cookie from username
 app.post("/logout",(req, res) => {
@@ -86,7 +123,7 @@ app.get('/register', (req,res) => {
 
 // add new user object to users and set cookie user_id.
 app.post('/register', (req, res) => {
-  const id = generateRandomString()
+  const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
   // 404 res if input fields empty
@@ -103,6 +140,7 @@ app.post('/register', (req, res) => {
   }
   users[id] = newUser;
 
+
   res.cookie('user_id', id);
   res.redirect("/urls/")
 });
@@ -114,7 +152,7 @@ app.get("/urls", (req, res) => {
 
 // gets the form to add a new url
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new", { user: users[req.cookies["user_id"]]} );
+  res.render("urls_new", { user: users[req.cookies["user_id"]] });
 });
 
 // gets the page with newly created id number

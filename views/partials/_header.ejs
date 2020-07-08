@@ -8,8 +8,20 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <!-- if local (template) object 'user' is set/defined, check if username is present. else show login form -->
-          <% if (user) { %>
+        <!-- TODO: Flex end --> 
+        <a class="nav-item nav-link btn btn-primary" href="/register">Register</a>
+        <% if(!user) { %>
+          <a class="nav-item nav-link btn btn-primary" href="/login">login</a>
+        <%} else { %>
+          <form action="/logout" method="POST">
+            <button class="nav-item nav-link btn btn-primary">logout</button>
+        </form>
+        <% } %>
+
+
+       <!--  -->
+               <!-- if local (template) object 'user' is set/defined, check if username is present. else show login form -->
+          <!-- <% if (user) { %>
             <form class="form-inline" action="/logout" method="POST">
               <div class="form-group mb-2"> 
                 <span style="color: #505050"><%= user.email %></span> 
@@ -23,7 +35,7 @@
                 <button type="submit" class="btn btn-primary">Submit</button>
               </div>
             </form>
-          <% } %>
+          <% } %> -->
        <!--  -->
       </div>
     </div>
