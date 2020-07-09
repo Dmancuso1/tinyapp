@@ -7,6 +7,9 @@ app.set("view engine", "ejs");
 // Parsers - this has to come before all routes.
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser')
+const bcrypt = require('bcrypt');
+// add sessions here...
+const saltRounds = 10;
 
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({extended: true}));
@@ -35,12 +38,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("purple-monkey-dinosaur", saltRounds)
   },
  "user2RandomID": {
     id: "user2RandomID", 
     email: "user2@example.com", 
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", saltRounds)
   }
 }
 
@@ -54,22 +57,24 @@ function generateRandomString() {
   return Math.random().toString(36).substring(2,8);
 }
 
+// authenticate user on login. (email and password)
+function authenticateUser(email, password) {
+  for (user in users) {
+    if(email === users[user].email) {
+      if(bcrypt.compareSync(password, users[user].password)) {
+        return users[user]
+      }
+    }
+  }
+  return null;
+}
+
 //email lookup function
 function checkEmailDupe(emailInput) {
   for (user in users) {
     if (emailInput === users[user].email) {
+      // console.log(users[user])
       return true;
-    }
-  }
-  return false;
-};
-
-// check password
-function checkPassword(passwordInput) {
-  for (user in users) {
-    if (passwordInput === users[user].password) {
-      // return true;
-      return { password: users[user].password, email: users[user].email, id: users[user].id }
     }
   }
   return false;
@@ -102,20 +107,19 @@ app.get('/q=links', (req, res) => {
   res.json(urlDatabase);
 });
 
-// sets an appropriate user_id cookie on successful login
-//TODO must fix so that users can still randomly have the same password..if not if defualts to the first urser registered.
+
+// sets an appropriate user_id cookie on successful loggin
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  if (!checkEmailDupe(email)) {
-    res.status(400).send('Error: No user found');
-  } else if (!checkPassword(password)) {
+  console.log(password)
+  const userValid = authenticateUser(email, password);
+  console.log(userValid)
+  if (userValid === null) {
     res.status(403).send('Error: invalid password');
   } else {
-    const newUserData = checkPassword(password)
-    res.cookie('user_id', newUserData.id)
+    res.cookie('user_id', userValid['id']); 
     res.redirect("/urls/")
-    console.log(newUserData.id)
   }
 });
 
@@ -154,7 +158,7 @@ app.post('/register', (req, res) => {
   const newUser = {
     id,
     email,
-    password
+    password: bcrypt.hashSync(password, saltRounds)
   }
   users[id] = newUser;
 
