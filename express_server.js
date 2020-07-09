@@ -8,18 +8,25 @@ app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser')
 const bcrypt = require('bcrypt');
-// add sessions here...
+const cookieSession = require('cookie-session');
 const saltRounds = 10;
 
 app.use(cookieParser())
+
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}));
+
+
 app.use(bodyParser.urlencoded({extended: true}));
 
 // custom middleware 
-app.use((req, res, next) => {
-  let currentUserId = req.cookies["user_id"];
-  // console.log(currentUserId)
-next();
-});
+// app.use((req, res, next) => {
+//   let currentUserId = req.cookies["user_id"];
+//   // console.log(currentUserId)
+// next();
+// });
 
 // DATABASE >>>------------------------>
 
