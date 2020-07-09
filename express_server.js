@@ -11,14 +11,23 @@ const cookieParser = require('cookie-parser')
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({extended: true}));
 
-
-
+// custom middleware 
+app.use((req, res, next) => {
+  let currentUserId = req.cookies["user_id"];
+  // console.log(currentUserId)
+next();
+});
 
 // DATABASE >>>------------------------>
 
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
 
@@ -77,7 +86,9 @@ app.get('/', (req, res) => {
 
 app.get('/q=users', (req, res) => {
   res.json(users);
-
+});
+app.get('/q=links', (req, res) => {
+  res.json(urlDatabase);
 });
 
 // sets an appropriate user_id cookie on successful login
@@ -97,7 +108,7 @@ app.post("/login", (req, res) => {
 
   // fetch login_user
 app.get("/login", (req, res) => {
-  let templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+  let templateVars = { urls: urlDatabase, user: req.cookies["user_id"] };
   res.render("login_user", templateVars);
 });
 
@@ -109,12 +120,13 @@ app.post("/logout",(req, res) => {
   res.redirect("/urls/")
 });
 
+//fetches register page
 app.get('/register', (req,res) => {
   let templateVars = { user: users[req.cookies["user_id"]] }
   res.render("register_user", templateVars)
 });
 
-// add new user object to users and set cookie user_id.
+// add new registered user object to users and set cookie user_id.
 app.post('/register', (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
@@ -137,8 +149,15 @@ app.post('/register', (req, res) => {
  }
 });
 
+//shows urls when logged in.
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] }; //ejs: can only send variables as objects
+  let templateVars = { 
+    urls: urlDatabase, 
+    user: users[req.cookies["user_id"]],
+    currentUserId: req.cookies["user_id"],
+    userIds: Object.keys(users)
+    }; 
+  //ejs: can only send variables as objects
   res.render("urls_index", templateVars);
 });
 
@@ -151,23 +170,26 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-// gets the page with newly created id number
+// gets the page with newly created tiny link
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL], 
+    longURL: urlDatabase[req.params.shortURL].longURL, 
     user: users[req.cookies["user_id"]]
   };
+  // console.log(req.params.shortURL)
+  // console.log(urlDatabase[req.params.shortURL].longURL)
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
   let id = generateRandomString();
-  urlDatabase[id] = req.body.longURL;
+  // urlDatabase[id] = req.body.longURL;
+  urlDatabase[id] = {longURL: req.body.longURL, userID: users[req.cookies["user_id"]]['id']}
   res.redirect(`/urls/${id}`);
 });
 
-//Add a POST request to update a resource. redirects to same page. 
+//Add a POST request to update/edit a resource. redirects to same page. 
 app.post("/urls/:shortURL", (req, res) => {
   urlDatabase[req.params.shortURL] = req.body.longURL;
   res.redirect(`/urls/${req.params.shortURL}`);
@@ -179,9 +201,12 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+// redirect to actual long link page
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+  // console.log(longURL)
   res.redirect(longURL);
+
 });
 
 // server connect.
