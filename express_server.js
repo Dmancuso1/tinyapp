@@ -103,6 +103,7 @@ app.get('/q=links', (req, res) => {
 });
 
 // sets an appropriate user_id cookie on successful login
+//TODO must fix so that users can still randomly have the same password..if not if defualts to the first urser registered.
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -112,14 +113,15 @@ app.post("/login", (req, res) => {
     res.status(403).send('Error: invalid password');
   } else {
     const newUserData = checkPassword(password)
-    res.cookie('user_id', newUserData.id )
+    res.cookie('user_id', newUserData.id)
     res.redirect("/urls/")
+    console.log(newUserData.id)
   }
 });
 
   // fetch login_user
 app.get("/login", (req, res) => {
-  let templateVars = { urls: urlDatabase, user: req.cookies["user_id"] };
+  let templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
   res.render("login_user", templateVars);
 });
 
@@ -133,8 +135,8 @@ app.post("/logout",(req, res) => {
 
 //fetches register page
 app.get('/register', (req,res) => {
-  // let templateVars = { user: users[req.cookies["user_id"]] }
-  let templateVars = { user: req.cookies["user_id"] }
+  let templateVars = { user: users[req.cookies["user_id"]] }
+  // let templateVars = { user: req.cookies["user_id"] }
   res.render("register_user", templateVars)
 });
 
