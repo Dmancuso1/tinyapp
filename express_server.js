@@ -75,6 +75,17 @@ function checkPassword(passwordInput) {
   return false;
 };
 
+// compares Logged in userID to stored urls with same userID
+const urlsForUser = (id) => {
+  let output = {};
+  for (let urlUserId in urlDatabase) {
+    if (urlDatabase[urlUserId].userID === id) {
+      output[urlUserId] = urlDatabase[urlUserId].longURL
+    }
+  }
+return output
+}
+
 
 
 
@@ -122,7 +133,8 @@ app.post("/logout",(req, res) => {
 
 //fetches register page
 app.get('/register', (req,res) => {
-  let templateVars = { user: users[req.cookies["user_id"]] }
+  // let templateVars = { user: users[req.cookies["user_id"]] }
+  let templateVars = { user: req.cookies["user_id"] }
   res.render("register_user", templateVars)
 });
 
@@ -155,8 +167,10 @@ app.get("/urls", (req, res) => {
     urls: urlDatabase, 
     user: users[req.cookies["user_id"]],
     currentUserId: req.cookies["user_id"],
-    userIds: Object.keys(users)
+    userIds: Object.keys(users),
+    usrUrls: urlsForUser(req.cookies["user_id"])
     }; 
+    console.log(urlsForUser(req.cookies["user_id"]))
   //ejs: can only send variables as objects
   res.render("urls_index", templateVars);
 });
@@ -182,17 +196,23 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+//Add a POST request to update/edit a resource. redirects to same page. 
+app.post("/urls/:shortURL", (req, res) => {
+  // urlDatabase[req.params.shortURL] = req.body.longURL;
+  // urlsForUser(req.cookies["user_id"]).shortURL = req.body.longURL
+  urlDatabase[req.params.shortURL] = {
+    longURL: req.body.longURL,
+    userID: req.cookies["user_id"]
+  }
+  res.redirect(`/urls/${req.params.shortURL}`);
+
+});
+
 app.post("/urls", (req, res) => {
   let id = generateRandomString();
   // urlDatabase[id] = req.body.longURL;
   urlDatabase[id] = {longURL: req.body.longURL, userID: users[req.cookies["user_id"]]['id']}
   res.redirect(`/urls/${id}`);
-});
-
-//Add a POST request to update/edit a resource. redirects to same page. 
-app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;
-  res.redirect(`/urls/${req.params.shortURL}`);
 });
 
 //Add a POST route that removes a URL resource: POST /urls/:shortURL/delete, then redirs to /urls
