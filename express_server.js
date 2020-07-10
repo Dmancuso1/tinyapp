@@ -46,6 +46,8 @@ const users = {
 
 // Helper functions >>>------------------------>
 
+const checkEmailDupe = require('./helpers')
+
 // generates 6-char random alpha-num string as id.
 function generateRandomString() {
   return Math.random().toString(36).substring(2,8);
@@ -62,16 +64,6 @@ function authenticateUser(email, password) {
   }
   return null;
 }
-
-//email lookup function
-function checkEmailDupe(emailInput) {
-  for (user in users) {
-    if (emailInput === users[user].email) {
-      return true;
-    }
-  }
-  return false;
-};
 
 // compares Logged in userID to stored urls with same userID
 const urlsForUser = (id) => {
@@ -105,9 +97,7 @@ app.get('/q=links', (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  console.log(password)
   const userValid = authenticateUser(email, password);
-  console.log(userValid)
   if (userValid === null) {
     res.status(403).send('Error: invalid password');
   } else {
@@ -143,7 +133,7 @@ app.post('/register', (req, res) => {
 
   if (email === "" || password === "") {
     res.status(400).send('Error: empty user input fields')
-  } else if (checkEmailDupe(email)) {
+  } else if (checkEmailDupe(email, users)) {
     res.status(400).send('Error: Email already exists')
   } else {
   const newUser = {
@@ -202,7 +192,7 @@ app.post("/urls/:shortURL", (req, res) => {
 app.post("/urls", (req, res) => {
   let id = generateRandomString();
   urlDatabase[id] = {longURL: req.body.longURL, userID: users[req.session["user_id"]]['id']}
-  res.redirect(`/urls/${id}`);
+  res.redirect(`/urls/`);
 });
 
 //Add a POST route that removes a URL resource: POST /urls/:shortURL/delete, then redirs to /urls
