@@ -11,19 +11,24 @@ const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
 const saltRounds = 10;
 
-app.use(cookieParser())
+
 
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
 }));
 
+app.use(cookieParser())
+
+// req.session["user_id"]
+// req.session["user_id"]
+
 
 app.use(bodyParser.urlencoded({extended: true}));
 
 // custom middleware 
 // app.use((req, res, next) => {
-//   let currentUserId = req.cookies["user_id"];
+//   let currentUserId = req.session["user_id"];
 //   // console.log(currentUserId)
 // next();
 // });
@@ -125,29 +130,30 @@ app.post("/login", (req, res) => {
   if (userValid === null) {
     res.status(403).send('Error: invalid password');
   } else {
-    res.cookie('user_id', userValid['id']); 
+    req.session['user_id'] = userValid['id']; 
     res.redirect("/urls/")
   }
 });
 
   // fetch login_user
 app.get("/login", (req, res) => {
-  let templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+  let templateVars = { urls: urlDatabase, user: users[req.session["user_id"]] };
+  console.log('req session', users[req.session["user_id"]])
   res.render("login_user", templateVars);
 });
 
 
 //remove cookie from username
 app.post("/logout",(req, res) => {
-  // res.clearCookie('username', req.body.username)
-  res.clearCookie('user_id', req.body.id )
+ 
+  req.session = null;
   res.redirect("/urls/")
 });
 
 //fetches register page
 app.get('/register', (req,res) => {
-  let templateVars = { user: users[req.cookies["user_id"]] }
-  // let templateVars = { user: req.cookies["user_id"] }
+  let templateVars = { user: users[req.session["user_id"]] }
+  // let templateVars = { user: req.session["user_id"] }
   res.render("register_user", templateVars)
 });
 
@@ -169,7 +175,7 @@ app.post('/register', (req, res) => {
   }
   users[id] = newUser;
 
-  res.cookie('user_id', id);
+  req.session['user_id'] = id;
   res.redirect("/urls/")
  }
 });
@@ -178,20 +184,20 @@ app.post('/register', (req, res) => {
 app.get("/urls", (req, res) => {
   let templateVars = { 
     urls: urlDatabase, 
-    user: users[req.cookies["user_id"]],
-    currentUserId: req.cookies["user_id"],
+    user: users[req.session["user_id"]],
+    currentUserId: req.session["user_id"],
     userIds: Object.keys(users),
-    usrUrls: urlsForUser(req.cookies["user_id"])
+    usrUrls: urlsForUser(req.session["user_id"])
     }; 
-    console.log(urlsForUser(req.cookies["user_id"]))
+    console.log(urlsForUser(req.session["user_id"]))
   //ejs: can only send variables as objects
   res.render("urls_index", templateVars);
 });
 
 // gets the form to add a new url
 app.get("/urls/new", (req, res) => {
-  if (users[req.cookies["user_id"]]) {
-    res.render("urls_new", { user: users[req.cookies["user_id"]] });
+  if (users[req.session["user_id"]]) {
+    res.render("urls_new", { user: users[req.session["user_id"]] });
   } else {
     res.redirect("/urls");
   }
@@ -202,7 +208,7 @@ app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL, 
-    user: users[req.cookies["user_id"]]
+    user: users[req.session["user_id"]]
   };
   // console.log(req.params.shortURL)
   // console.log(urlDatabase[req.params.shortURL].longURL)
@@ -212,10 +218,10 @@ app.get("/urls/:shortURL", (req, res) => {
 //Add a POST request to update/edit a resource. redirects to same page. 
 app.post("/urls/:shortURL", (req, res) => {
   // urlDatabase[req.params.shortURL] = req.body.longURL;
-  // urlsForUser(req.cookies["user_id"]).shortURL = req.body.longURL
+  // urlsForUser(req.session["user_id"]).shortURL = req.body.longURL
   urlDatabase[req.params.shortURL] = {
     longURL: req.body.longURL,
-    userID: req.cookies["user_id"]
+    userID: req.session["user_id"]
   }
   res.redirect(`/urls/${req.params.shortURL}`);
 
@@ -224,7 +230,7 @@ app.post("/urls/:shortURL", (req, res) => {
 app.post("/urls", (req, res) => {
   let id = generateRandomString();
   // urlDatabase[id] = req.body.longURL;
-  urlDatabase[id] = {longURL: req.body.longURL, userID: users[req.cookies["user_id"]]['id']}
+  urlDatabase[id] = {longURL: req.body.longURL, userID: users[req.session["user_id"]]['id']}
   res.redirect(`/urls/${id}`);
 });
 
