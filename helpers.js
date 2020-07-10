@@ -1,6 +1,6 @@
 // email lookup function
 const checkEmailDupe = (emailInput, userDb) => {
-  for (user in userDb) {
+  for (let user in userDb) {
     if (emailInput === userDb[user].email) {
       return true;
     }

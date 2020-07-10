@@ -33,23 +33,29 @@
         </tbody>
       </table>
     <% } else { %>
-      <div style="padding-top: 2.5rem; display:flex; justify-content: center;">
-        <h5>Please <a href = '/login'>Login</a> or <a href='/register'>register</a> to view <b>urls. 🦆</b></h5>
+      <div style="padding: 1.5rem 1rem; display:flex; justify-content: center;">
+        <h5>Please <a href = '/login'>Login</a> or <a href='/register'>register</a> to create <b>Tiny URLs. 🦆</b></h5>
       </div>
     <% } %>
-
+      <table class="table">
+    <h2>All Tiny URLs</h2>
+    <div>
+      <tr>
+      <th scope="col">Short URL</th>
+      <th scope="col">Long URL</th>
+      </tr>
+    <% for(let url in urls) { %>
+        <tr>
+        <td><a href="/u/<%= url %>"><%= url %></a></td>  
+        <td><%= urls[url].longURL %></td>
+        </tr>
+      <% } %>
+    </div>
+  </table>
   </main>
 
   <!-- use this for all urls -->
-  
-  <!-- <% for(let url in urls) { %>
-    <tr>
-      <td><%= url%></td>
-      <td><%= urls[url].longURL %></td>
-      <td><a href="/urls/<%= url%>" class="btn btn-warning">Edit</a></td>
-      <td><form method="POST" action="/urls/<%= url%>/delete"><button type="submit" class="btn btn-danger">Delete</button></form></td>
-    </tr>
-    <% } %> -->
+
 
 
    <!-- Bootstrap JS -->

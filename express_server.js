@@ -10,14 +10,13 @@ const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
 const saltRounds = 10;
 
-
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
 }));
 
-
 app.use(bodyParser.urlencoded({extended: true}));
+
 
 
 
@@ -28,25 +27,25 @@ const urlDatabase = {
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
-const users = { 
+const users = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: bcrypt.hashSync("purple-monkey-dinosaur", saltRounds)
   },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
     password: bcrypt.hashSync("dishwasher-funk", saltRounds)
   }
-}
+};
 
 
 
 
 // Helper functions >>>------------------------>
 
-const checkEmailDupe = require('./helpers')
+const checkEmailDupe = require('./helpers');
 
 // generates 6-char random alpha-num string as id.
 function generateRandomString() {
@@ -55,10 +54,10 @@ function generateRandomString() {
 
 // authenticate user on login. (email and password)
 function authenticateUser(email, password) {
-  for (user in users) {
-    if(email === users[user].email) {
-      if(bcrypt.compareSync(password, users[user].password)) {
-        return users[user]
+  for (let user in users) {
+    if (email === users[user].email) {
+      if (bcrypt.compareSync(password, users[user].password)) {
+        return users[user];
       }
     }
   }
@@ -70,11 +69,11 @@ const urlsForUser = (id) => {
   let output = {};
   for (let urlUserId in urlDatabase) {
     if (urlDatabase[urlUserId].userID === id) {
-      output[urlUserId] = urlDatabase[urlUserId].longURL
+      output[urlUserId] = urlDatabase[urlUserId].longURL;
     }
   }
-return output
-}
+  return output;
+};
 
 
 
@@ -82,18 +81,10 @@ return output
 // routes >>>------------------------>
 
 app.get('/', (req, res) => {
-  res.send("Hello!");
+  res.redirect("/urls/");
 });
 
-app.get('/q=users', (req, res) => {
-  res.json(users);
-});
-app.get('/q=links', (req, res) => {
-  res.json(urlDatabase);
-});
-
-
-// sets an appropriate user_id cookie on successful loggin
+// sets appropriate user_id cookie on successful loggin
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -101,28 +92,27 @@ app.post("/login", (req, res) => {
   if (userValid === null) {
     res.status(403).send('Error: invalid password');
   } else {
-    req.session['user_id'] = userValid['id']; 
-    res.redirect("/urls/")
+    req.session['user_id'] = userValid['id'];
+    res.redirect("/urls/");
   }
 });
 
-  // fetch login_user
+// fetch login_user
 app.get("/login", (req, res) => {
   let templateVars = { urls: urlDatabase, user: users[req.session["user_id"]] };
   res.render("login_user", templateVars);
 });
 
-
 //remove cookie from username
 app.post("/logout",(req, res) => {
   req.session = null;
-  res.redirect("/urls/")
+  res.redirect("/urls/");
 });
 
 //fetches register page
 app.get('/register', (req,res) => {
-  let templateVars = { user: users[req.session["user_id"]] }
-  res.render("register_user", templateVars)
+  let templateVars = { user: users[req.session["user_id"]] };
+  res.render("register_user", templateVars);
 });
 
 // add new registered user object to users and set cookie user_id.
@@ -132,31 +122,30 @@ app.post('/register', (req, res) => {
   const password = req.body.password;
 
   if (email === "" || password === "") {
-    res.status(400).send('Error: empty user input fields')
+    res.status(400).send('Error: empty user input fields');
   } else if (checkEmailDupe(email, users)) {
-    res.status(400).send('Error: Email already exists')
+    res.status(400).send('Error: Email already exists');
   } else {
-  const newUser = {
-    id,
-    email,
-    password: bcrypt.hashSync(password, saltRounds)
+    const newUser = {
+      id,
+      email,
+      password: bcrypt.hashSync(password, saltRounds)
+    };
+    users[id] = newUser;
+    req.session['user_id'] = id;
+    res.redirect("/urls/");
   }
-  users[id] = newUser;
-  req.session['user_id'] = id;
-  res.redirect("/urls/")
- }
 });
 
 //shows urls when logged in.
 app.get("/urls", (req, res) => {
-  let templateVars = { 
-    urls: urlDatabase, 
+  let templateVars = {
+    urls: urlDatabase,
     user: users[req.session["user_id"]],
     currentUserId: req.session["user_id"],
     userIds: Object.keys(users),
     usrUrls: urlsForUser(req.session["user_id"])
-    }; 
-  //ejs: can only send variables as objects
+  };
   res.render("urls_index", templateVars);
 });
 
@@ -171,33 +160,38 @@ app.get("/urls/new", (req, res) => {
 
 // gets the page with newly created tiny link
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = {
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL, 
-    user: users[req.session["user_id"]]
-  };
-  res.render("urls_show", templateVars);
+  if (req.session["user_id"] === urlDatabase[req.params.shortURL].userID) {
+    let templateVars = {
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      user: users[req.session["user_id"]]
+    };
+    res.render("urls_show", templateVars);
+  } else {
+    res.redirect('/urls');
+  }
 });
 
-//Add a POST request to update/edit a resource. redirects to same page. 
+//Add a POST request to update/edit a resource. redirects to same page.
 app.post("/urls/:shortURL", (req, res) => {
   urlDatabase[req.params.shortURL] = {
     longURL: req.body.longURL,
     userID: req.session["user_id"]
-  }
+  };
   res.redirect(`/urls/${req.params.shortURL}`);
 
 });
 
+// setting new url to db
 app.post("/urls", (req, res) => {
   let id = generateRandomString();
-  urlDatabase[id] = {longURL: req.body.longURL, userID: users[req.session["user_id"]]['id']}
-  res.redirect(`/urls/`);
+  urlDatabase[id] = {longURL: req.body.longURL, userID: users[req.session["user_id"]]['id']};
+  res.redirect("/urls/");
 });
 
 //Add a POST route that removes a URL resource: POST /urls/:shortURL/delete, then redirs to /urls
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL]
+  delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
 });
 
