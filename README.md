@@ -4,17 +4,17 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-* See your own URLs along with all URLs
-!["screenshot description"](/screenshots/edit-your-own-urls.png)
+* See your own URLs and public URLs
+!["edit your own urls"](/docs/edit-your-own-urls.png )
 
 * Create a new URL once logged in
-!["screenshot description"](/screenshots/create-new-url.png)
+!["create a URL"](/docs/create-new-url.png)
 
 * Edit your own URLs
-!["screenshot description"](/screenshots/edit-url.png)
+!["edit a URL"](/docs/edit-url.png)
 
 * Create an account 
-!["screenshot description"](/screenshots/create-account.png)
+!["create an account"](/docs/create-account.png)
 
 
 ## Dependencies
